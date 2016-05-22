@@ -8,14 +8,14 @@ through the worst of network conditions.
 
 ## Clients
 
-* [http2-push-assets-node](https://github.com/asilvas/http2-push-assets-node/README.md#client) - Vanilla Node.js client
+* [http2-push-assets-node](https://github.com/asilvas/http2-push-assets-node#client) - Vanilla Node.js client
 * (Potentially) [http2](https://github.com/request/request/issues/1982) - Future version of the popular Node.js request client
 * (Potentially) [request](https://github.com/molnarg/node-http2) - Node.js Http2 client
 
 
 ## Servers
 
-* [http2-push-assets-node](https://github.com/asilvas/http2-push-assets-node/README.md#server) - Vanilla Node.js server connect middleware
+* [http2-push-assets-node](https://github.com/asilvas/http2-push-assets-node#server) - Vanilla Node.js server connect middleware
 
 
 

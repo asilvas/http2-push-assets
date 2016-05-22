@@ -1,0 +1,392 @@
+
+
+
+
+Network Working Group                                          A. Silvas
+Internet-Draft                                                   GoDaddy
+Intended status: Experimental                             June TBD, 2016
+Expires: November 23, 2016
+
+
+                        Push-Assets Header Field
+                   draft-asilvas-http-push-assets-00
+
+Abstract
+
+   "Push-Assets" header combined with child headers "Push-Asset-Key" and
+   "Push-Asset-Match" provide necessary state to be negogiated between
+   client and server, enabling efficient usage of "Server Push" on every
+   request.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on November 23, 2016.
+
+Copyright Notice
+
+   Copyright (c) 2016 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+
+
+
+Silvas                  Expires November 23, 2016               [Page 1]
+
+Internet-Draft                 Push-Assets                     June 2016
+
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+     1.1.  Terminology . . . . . . . . . . . . . . . . . . . . . . .   3
+   2.  Understanding The Problem . . . . . . . . . . . . . . . . . .   3
+   3.  Push Assets Use Cases . . . . . . . . . . . . . . . . . . . .   4
+     3.1.  First Load Experience . . . . . . . . . . . . . . . . . .   4
+     3.2.  Subsequent Load Experience  . . . . . . . . . . . . . . .   4
+     3.3.  Proxy Optimization  . . . . . . . . . . . . . . . . . . .   4
+     3.4.  Non-Browser Clients . . . . . . . . . . . . . . . . . . .   4
+     3.5.  Alternative Document Formats  . . . . . . . . . . . . . .   4
+   4.  Push-Assets Header  . . . . . . . . . . . . . . . . . . . . .   5
+     4.1.  Caching Headers . . . . . . . . . . . . . . . . . . . . .   5
+     4.2.  Empty Cache Request . . . . . . . . . . . . . . . . . . .   5
+   5.  Push-Asset-Key Header . . . . . . . . . . . . . . . . . . . .   5
+     5.1.  Named Key . . . . . . . . . . . . . . . . . . . . . . . .   5
+     5.2.  Key from URL  . . . . . . . . . . . . . . . . . . . . . .   5
+   6.  Push-Asset-Match Header . . . . . . . . . . . . . . . . . . .   6
+     6.1.  Match Similar Requests  . . . . . . . . . . . . . . . . .   6
+     6.2.  Match All Requests  . . . . . . . . . . . . . . . . . . .   6
+   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   6
+     7.1.  Normative References  . . . . . . . . . . . . . . . . . .   6
+     7.2.  Informative References  . . . . . . . . . . . . . . . . .   7
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   7
+
+1.  Introduction
+
+   As described in [HighPerformance], transfer sizes and document
+   requests continue to increase.  While network conditions continue to
+   improve, resulting in lower latencies and increased bandwidth,
+   HTTP/1.1 ([RFC7230] and [RFC7231]) fails to address the underlining
+   problem of document dependencies and the resulting "waterfall" of
+   blocked requests.
+
+   HTTP/2 [RFC7540] aims to address some of these problems, by way of
+   Streams and Multiplexing, combined with HTTP/2 [RFC7540] Server Push.
+   A ruthless combination, addressing "head-of-line blocking" through
+   Multiplexing, and optimist pre-loading by way of Server Push.
+
+   Where "Server Push" begins to fall short is around client state,
+   leaving it up to servers to leverage existing HTTP State Management
+   Mechanism [RFC6265] with Cookies, which are not purpose built to
+   solve the problem of document dependency state.  This lack of client
+   state can result in HTTP/2 [RFC7540] "RST_STREAM", where-in in-flight
+   "Server Push" Streams will be cancelled, incurring client and server
+   waste.
+
+
+
+
+
+Silvas                  Expires November 23, 2016               [Page 2]
+
+Internet-Draft                 Push-Assets                     June 2016
+
+
+   This document aims to address document dependency state by looking to
+   Caching [RFC7234] familiar with existing HTTP/1.1 requests (see
+   [RFC7230] and [RFC7231]).  By pulling this state data into the parent
+   request, servers are able to intellegently and responsibly "Server
+   Push" only missing or outdated dependencies.
+
+1.1.  Terminology
+
+   In this document, the key words "MUST", "MUST NOT", "REQUIRED",
+   "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY",
+   and "OPTIONAL" are to be interpreted as described in BCP 14, RFC 2119
+   [RFC2119] and indicate requirement levels for compliant
+   implementations.
+
+   This document uses the Augmented BNF defined in [RFC5234].
+
+2.  Understanding The Problem
+
+   Here we can begin to see the problem with vanilla HTTP/2 [RFC7540]
+   Server Push using one of many custom cookie-based implementations.
+
+                               The problem.
+
+
+     +---------------+------------------+
+     |  Empty Cache  | Request A        |
+     +---------------+------------------+
+                     | PUSH_PROMISE A1  |
+                     +------------------+
+                     | PUSH_PROMISE AB1 |
+                     +------------------+
+                     | Response A       |
+     +---------------+------------------+
+     | Partial Cache | Request B        |
+     +---------------+------------------+
+                     | PUSH_PROMISE B1  |
+                     +------------------+
+                     | PUSH_PROMISE AB1 | <== EVIL
+                     +------------------+
+                     | Response B       |
+                     +------------------+
+                     | RST_STREAM AB1   | <== EVIL
+                     +------------------+
+
+
+                                 Figure 1
+
+
+
+
+
+Silvas                  Expires November 23, 2016               [Page 3]
+
+Internet-Draft                 Push-Assets                     June 2016
+
+
+   With "Push-Assets" enabled both client and server adhere to a strict
+   dependency state contract.
+
+                               The solution.
+
+
+     +---------------+------------------+
+     |  Empty Cache  | Request A        |
+     +---------------+------------------+
+                     | PUSH_PROMISE A1  |
+                     +------------------+
+                     | PUSH_PROMISE AB1 |
+                     +------------------+
+                     | Response A       |
+     +---------------+------------------+
+     | Partial Cache | Request B        |
+     +---------------+------------------+
+                     | PUSH_PROMISE B1  |
+                     +------------------+
+                     | Response B       |
+                     +------------------+
+
+
+                                 Figure 2
+
+3.  Push Assets Use Cases
+
+3.1.  First Load Experience
+
+   TODO
+
+3.2.  Subsequent Load Experience
+
+   TODO
+
+3.3.  Proxy Optimization
+
+   TODO
+
+3.4.  Non-Browser Clients
+
+   TODO
+
+3.5.  Alternative Document Formats
+
+   TODO
+
+
+
+
+
+Silvas                  Expires November 23, 2016               [Page 4]
+
+Internet-Draft                 Push-Assets                     June 2016
+
+
+4.  Push-Assets Header
+
+Push-Assets = [*][Asset-Key=Caching-Headers][;Asset-Key=Caching-Headers]
+
+   A REQUIRED Request Header.
+
+   Comprised of zero or more "Assets" addressed by their "Asset Key".
+
+   An "Asset-Key" is the name of the asset uniquely identifiable by the
+   document or matching documents.
+
+4.1.  Caching Headers
+
+Push-Assets = Asset-Key=[etag(etag-value),][last-modified(date)][no-push]
+
+   Caching MAY include an "ETag", and/or "Last-Modified", or "No-Push".
+   This provides necessary client state of dependencies to server.
+
+4.2.  Empty Cache Request
+
+   Push-Assets = *
+
+   Where "*" informs server to Push all push-enabled dependencies, if
+   "Push-Assets" is enabled.  Servers are NOT required to push any or
+   all dependencies, but MUST push all missing or outdated push-enabled
+   assets.
+
+5.  Push-Asset-Key Header
+
+   Push-Asset-Key = [$][Asset-Key]
+
+   A REQUIRED "PUSH_PROMISE" Response Header.
+
+   Unlike the "Asset-Key" in a Request, the "Push-Asset-Key Header"
+   corresponds to the Key of the "PUSH_PROMISE" Response.
+
+5.1.  Named Key
+
+   Push-Asset-Key = core-bundle.js
+
+   By naming an asset, you MAY share that asset across multiple
+   documents, and MAY change the URL as necessary.
+
+5.2.  Key from URL
+
+   Push-Asset-Key = $
+
+
+
+
+
+Silvas                  Expires November 23, 2016               [Page 5]
+
+Internet-Draft                 Push-Assets                     June 2016
+
+
+   Where "$" is reserved as a short-hand for the client to recognize the
+   key as the URL Path, and MUST NOT include the querystring.
+
+   Example URL of "/my/document?some=thing" would by keyed as "/my/
+   document".
+
+6.  Push-Asset-Match Header
+
+   Push-Asset-Match = Asset-Match
+
+   An OPTIONAL "PUSH_PROMISE" Response Header.
+
+   An Asset-Match supports the lexical pattern of the URL (minus
+   querystring) to match, and MAY end by reserved wildcard "*" to
+   indicate matching all requests "equal or greater than" the URL (minus
+   querystring).
+
+6.1.  Match Similar Requests
+
+   Push-Asset-Match = /some-path/*
+
+   Where all requests with URL (minus querystring) greater than or equal
+   to "/some-path/" will be matched.
+
+6.2.  Match All Requests
+
+   Push-Asset-Match = *
+
+   "*" by itself corresponds to "match all requests".
+
+7.  References
+
+7.1.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <http://www.rfc-editor.org/info/rfc2119>.
+
+   [RFC5234]  Crocker, D., Ed. and P. Overell, "Augmented BNF for Syntax
+              Specifications: ABNF", STD 68, RFC 5234,
+              DOI 10.17487/RFC5234, January 2008,
+              <http://www.rfc-editor.org/info/rfc5234>.
+
+   [RFC7540]  Belshe, M., Peon, R., and M. Thomson, Ed., "Hypertext
+              Transfer Protocol Version 2 (HTTP/2)", RFC 7540,
+              DOI 10.17487/RFC7540, May 2015,
+              <http://www.rfc-editor.org/info/rfc7540>.
+
+
+
+Silvas                  Expires November 23, 2016               [Page 6]
+
+Internet-Draft                 Push-Assets                     June 2016
+
+
+7.2.  Informative References
+
+   [HighPerformance]
+              Grigorik, I., "High Performance Browser Networking",
+              September 2013.
+
+   [RFC6265]  Barth, A., "HTTP State Management Mechanism", RFC 6265,
+              DOI 10.17487/RFC6265, April 2011,
+              <http://www.rfc-editor.org/info/rfc6265>.
+
+   [RFC7230]  Fielding, R., Ed. and J. Reschke, Ed., "Hypertext Transfer
+              Protocol (HTTP/1.1): Message Syntax and Routing",
+              RFC 7230, DOI 10.17487/RFC7230, June 2014,
+              <http://www.rfc-editor.org/info/rfc7230>.
+
+   [RFC7231]  Fielding, R., Ed. and J. Reschke, Ed., "Hypertext Transfer
+              Protocol (HTTP/1.1): Semantics and Content", RFC 7231,
+              DOI 10.17487/RFC7231, June 2014,
+              <http://www.rfc-editor.org/info/rfc7231>.
+
+   [RFC7234]  Fielding, R., Ed., Nottingham, M., Ed., and J. Reschke,
+              Ed., "Hypertext Transfer Protocol (HTTP/1.1): Caching",
+              RFC 7234, DOI 10.17487/RFC7234, June 2014,
+              <http://www.rfc-editor.org/info/rfc7234>.
+
+Author's Address
+
+   Aaron Silvas
+   GoDaddy
+
+   Email: asilvas@godaddy.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Silvas                  Expires November 23, 2016               [Page 7]

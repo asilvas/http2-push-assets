@@ -1,3 +1,4 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 
@@ -382,13 +383,13 @@
 <link href="#rfc.section.3.2" rel="Chapter" title="3.2 Subsequent Load Experience"/>
 <link href="#rfc.section.3.3" rel="Chapter" title="3.3 Proxy Optimization"/>
 <link href="#rfc.section.3.4" rel="Chapter" title="3.4 Non-Browser Clients"/>
-<link href="#rfc.section.3.5" rel="Chapter" title="3.5 Alternative Document Formats"/>
+<link href="#rfc.section.3.5" rel="Chapter" title="3.5 Alternative Content Types"/>
 <link href="#rfc.section.4" rel="Chapter" title="4 Push-Assets Header"/>
 <link href="#rfc.section.4.1" rel="Chapter" title="4.1 Caching Headers"/>
 <link href="#rfc.section.4.2" rel="Chapter" title="4.2 Empty Cache Request"/>
 <link href="#rfc.section.5" rel="Chapter" title="5 Push-Asset-Key Header"/>
 <link href="#rfc.section.5.1" rel="Chapter" title="5.1 Named Key"/>
-<link href="#rfc.section.5.2" rel="Chapter" title="5.2 Key from URL"/>
+<link href="#rfc.section.5.2" rel="Chapter" title="5.2 Key from URI Path"/>
 <link href="#rfc.section.6" rel="Chapter" title="6 Push-Asset-Match Header"/>
 <link href="#rfc.section.6.1" rel="Chapter" title="6.1 Match Similar Requests"/>
 <link href="#rfc.section.6.2" rel="Chapter" title="6.2 Match All Requests"/>
@@ -427,7 +428,7 @@
   <td class="right">June TBD, 2016</td>
 </tr>
 <tr>
-  <td class="left">Expires: November 23, 2016</td>
+  <td class="left">Expires: November 29, 2016</td>
   <td class="right"></td>
 </tr>
 
@@ -441,14 +442,14 @@
   <h1 id="rfc.abstract">
   <a href="#rfc.abstract">Abstract</a>
 </h1>
-<p><samp>Push-Assets</samp> header combined with child headers <samp>Push-Asset-Key</samp> and <samp>Push-Asset-Match</samp> provide necessary state to be negogiated between client and server, enabling efficient usage of <samp>Server Push</samp> on every request.</p>
+<p><samp>Push-Assets</samp> request header combined with response headers <samp>Push-Asset-Key</samp> and <samp>Push-Asset-Match</samp> provide necessary state to be negotiated between client and server, offering greatly improved usage HTTP/2 <samp>Server Push</samp> on every request.</p>
 <h1 id="rfc.status">
   <a href="#rfc.status">Status of This Memo</a>
 </h1>
 <p>This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79.</p>
 <p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at http://datatracker.ietf.org/drafts/current/.</p>
 <p>Internet-Drafts are draft documents valid for a maximum of six months and may be updated, replaced, or obsoleted by other documents at any time.  It is inappropriate to use Internet-Drafts as reference material or to cite them other than as "work in progress."</p>
-<p>This Internet-Draft will expire on November 23, 2016.</p>
+<p>This Internet-Draft will expire on November 29, 2016.</p>
 <h1 id="rfc.copyrightnotice">
   <a href="#rfc.copyrightnotice">Copyright Notice</a>
 </h1>
@@ -468,13 +469,13 @@
 <li>3.2.   <a href="#rfc.section.3.2">Subsequent Load Experience</a></li>
 <li>3.3.   <a href="#rfc.section.3.3">Proxy Optimization</a></li>
 <li>3.4.   <a href="#rfc.section.3.4">Non-Browser Clients</a></li>
-<li>3.5.   <a href="#rfc.section.3.5">Alternative Document Formats</a></li>
+<li>3.5.   <a href="#rfc.section.3.5">Alternative Content Types</a></li>
 </ul><li>4.   <a href="#rfc.section.4">Push-Assets Header</a></li>
 <ul><li>4.1.   <a href="#rfc.section.4.1">Caching Headers</a></li>
 <li>4.2.   <a href="#rfc.section.4.2">Empty Cache Request</a></li>
 </ul><li>5.   <a href="#rfc.section.5">Push-Asset-Key Header</a></li>
 <ul><li>5.1.   <a href="#rfc.section.5.1">Named Key</a></li>
-<li>5.2.   <a href="#rfc.section.5.2">Key from URL</a></li>
+<li>5.2.   <a href="#rfc.section.5.2">Key from URI Path</a></li>
 </ul><li>6.   <a href="#rfc.section.6">Push-Asset-Match Header</a></li>
 <ul><li>6.1.   <a href="#rfc.section.6.1">Match Similar Requests</a></li>
 <li>6.2.   <a href="#rfc.section.6.2">Match All Requests</a></li>
@@ -487,18 +488,17 @@
   </ul>
 
   <h1 id="rfc.section.1"><a href="#rfc.section.1">1.</a> <a href="#introduction" id="introduction">Introduction</a></h1>
-<p id="rfc.section.1.p.1">As described in <a href="#HighPerformance">[HighPerformance]</a>, transfer sizes and document requests continue to increase. While network conditions continue to improve, resulting in lower latencies and increased bandwidth, HTTP/1.1 (<a href="#RFC7230">[RFC7230]</a> and <a href="#RFC7231">[RFC7231]</a>) fails to address the underlining problem of document dependencies and the resulting "waterfall" of blocked requests.</p>
-<p id="rfc.section.1.p.2">HTTP/2 <a href="#RFC7540">[RFC7540]</a> aims to address some of these problems, by way of Streams and Multiplexing, combined with HTTP/2 <a href="#RFC7540">[RFC7540]</a> Server Push. A ruthless combination, addressing "head-of-line blocking" through Multiplexing, and optimist pre-loading by way of Server Push.</p>
+<p id="rfc.section.1.p.1">As described in <a href="#HighPerformance">[HighPerformance]</a>, transfer sizes and document requests continue to increase. While network conditions continue to improve, resulting in lower latencies and increased bandwidth, HTTP/1.1 (<a href="#RFC7230">[RFC7230]</a> and <a href="#RFC7231">[RFC7231]</a>) fails to address the underlying problem of document dependencies and the resulting "waterfall" of blocked requests.</p>
+<p id="rfc.section.1.p.2">HTTP/2 <a href="#RFC7540">[RFC7540]</a> aims to address some of these problems, by way of Streams and Multiplexing, combined with HTTP/2 <a href="#RFC7540">[RFC7540]</a> Server Push. A ruthless combination, addressing "head-of-line blocking" through Multiplexing, and optimistic pre-loading by way of Server Push.</p>
 <p id="rfc.section.1.p.3">Where <samp>Server Push</samp> begins to fall short is around client state, leaving it up to servers to leverage existing HTTP State Management Mechanism <a href="#RFC6265">[RFC6265]</a> with Cookies, which are not purpose built to solve the problem of document dependency state. This lack of client state can result in HTTP/2 <a href="#RFC7540">[RFC7540]</a> <samp>RST_STREAM</samp>, where-in in-flight <samp>Server Push</samp> Streams will be cancelled, incurring client and server waste.</p>
-<p id="rfc.section.1.p.4">This document aims to address document dependency state by looking to Caching <a href="#RFC7234">[RFC7234]</a> familiar with existing HTTP/1.1 requests (see <a href="#RFC7230">[RFC7230]</a> and <a href="#RFC7231">[RFC7231]</a>). By pulling this state data into the parent request, servers are able to intellegently and responsibly <samp>Server Push</samp> only missing or outdated dependencies.</p>
+<p id="rfc.section.1.p.4">This document aims to address document dependency state by looking to Caching <a href="#RFC7234">[RFC7234]</a> familiar with existing HTTP/1.1 requests (see <a href="#RFC7230">[RFC7230]</a> and <a href="#RFC7231">[RFC7231]</a>). By pulling this state data into the parent request, servers are able to intelligently and responsibly <samp>Server Push</samp> only missing or outdated dependencies.</p>
 <h1 id="rfc.section.1.1"><a href="#rfc.section.1.1">1.1.</a> <a href="#Terminology" id="Terminology">Terminology</a></h1>
 <p id="rfc.section.1.1.p.1">In this document, the key words &#8220;MUST&#8221;, &#8220;MUST NOT&#8221;, &#8220;REQUIRED&#8221;, &#8220;SHALL&#8221;, &#8220;SHALL NOT&#8221;, &#8220;SHOULD&#8221;, &#8220;SHOULD NOT&#8221;, &#8220;RECOMMENDED&#8221;, &#8220;MAY&#8221;, and &#8220;OPTIONAL&#8221; are to be interpreted as described in BCP 14, RFC 2119 <a href="#RFC2119">[RFC2119]</a> and indicate requirement levels for compliant implementations.</p>
 <p id="rfc.section.1.1.p.2">This document uses the Augmented BNF defined in <a href="#RFC5234">[RFC5234]</a>.</p>
 <h1 id="rfc.section.2"><a href="#rfc.section.2">2.</a> <a href="#understanding-the-problem" id="understanding-the-problem">Understanding The Problem</a></h1>
-<p id="rfc.section.2.p.1">Here we can begin to see the problem with vanilla HTTP/2 <a href="#RFC7540">[RFC7540]</a> Server Push using one of many custom cookie-based implementations.</p>
 <div id="rfc.figure.1"/>
 <div id="xml_problem"/>
-<p>The problem.</p>
+<p>Here we can begin to see the problem with vanilla HTTP/2 <a href="#RFC7540">[RFC7540]</a> Server Push using one of many custom cookie-based implementations to manage state.</p>
 <pre>
 
   +---------------+------------------+
@@ -524,10 +524,9 @@
 </pre>
 <p/>
 <p class="figure">Figure 1</p>
-<p id="rfc.section.2.p.2">With <samp>Push-Assets</samp> enabled both client and server adhere to a strict dependency state contract.</p>
 <div id="rfc.figure.2"/>
 <div id="xml_solution"/>
-<p>The solution.</p>
+<p>With <samp>Push-Assets</samp> enabled both client and server adhere to a strict dependency state contract.</p>
 <pre>
 
   +---------------+------------------+
@@ -551,15 +550,26 @@
 <p class="figure">Figure 2</p>
 <h1 id="rfc.section.3"><a href="#rfc.section.3">3.</a> <a href="#push-assets-use-cases" id="push-assets-use-cases">Push Assets Use Cases</a></h1>
 <h1 id="rfc.section.3.1"><a href="#rfc.section.3.1">3.1.</a> <a href="#first-load-experience" id="first-load-experience">First Load Experience</a></h1>
-<p id="rfc.section.3.1.p.1">TODO</p>
+<p id="rfc.section.3.1.p.1">Often the most import visit to a site is the first.  <samp>Push-Assets</samp> provides the necessary client state for the server to confidently know which resources are missing or outdated.</p>
 <h1 id="rfc.section.3.2"><a href="#rfc.section.3.2">3.2.</a> <a href="#subsequent-load-experience" id="subsequent-load-experience">Subsequent Load Experience</a></h1>
-<p id="rfc.section.3.2.p.1">TODO</p>
+<p id="rfc.section.3.2.p.1">As users navigate to previously visited pages, or new pages where some shared resources have been cached, <samp>Push-Assets</samp> provides ample client state to continue making efficient use of <samp>Server Push</samp>, only sending what resources the client does not already have.</p>
 <h1 id="rfc.section.3.3"><a href="#rfc.section.3.3">3.3.</a> <a href="#proxy-optimization" id="proxy-optimization">Proxy Optimization</a></h1>
-<p id="rfc.section.3.3.p.1">TODO</p>
+<div id="rfc.figure.3"/>
+<div id="xml_proxies"/>
+<p>On one end of the spectrum of proxies lies your server proxies, with CDN's on the other end.</p>
+<pre>
+
+[Client] &lt;==[CDN]&lt;=======================[Proxy]&lt;==[Origin]
+
+</pre>
+<p/>
+<p class="figure">Figure 3</p>
+<p id="rfc.section.3.3.p.1">With <samp>Push-Assets</samp> providing efficient communication between two points, this may lend to potential benefits between Proxies and their Origin server as well. While the Proxy nearest your Client SHOULD support <samp>Push-Assets</samp> for best results, it MAY elect not to also leverage <samp>Push-Assets</samp> between the Proxy and Origin.</p>
+<p id="rfc.section.3.3.p.2">For proxies with caching nearest to Client (namely CDN's), they may further benefit from <samp>Push-Assets</samp> for an efficient utilization of <samp>Server Push</samp>.</p>
 <h1 id="rfc.section.3.4"><a href="#rfc.section.3.4">3.4.</a> <a href="#non-browser-clients" id="non-browser-clients">Non-Browser Clients</a></h1>
-<p id="rfc.section.3.4.p.1">TODO</p>
-<h1 id="rfc.section.3.5"><a href="#rfc.section.3.5">3.5.</a> <a href="#alternative-document-formats" id="alternative-document-formats">Alternative Document Formats</a></h1>
-<p id="rfc.section.3.5.p.1">TODO</p>
+<p id="rfc.section.3.4.p.1">Leveraging the benefits of <samp>Push-Assets</samp> allows for more efficient communication with compatible servers. The more complex the data, the greater the potential benefits.</p>
+<h1 id="rfc.section.3.5"><a href="#rfc.section.3.5">3.5.</a> <a href="#alternative-content-types" id="alternative-content-types">Alternative Content Types</a></h1>
+<p id="rfc.section.3.5.p.1">With <samp>Push-Assets</samp> being nothing more than an HTTP Header, extending the benefits to other Content Type's <a href="#RFC2045">[RFC2045]</a> is entirely up to the Client and Server. Consider circumstances where you retrieve a JSON document, which signals relationships with other documents.  <samp>Push-Assets</samp> reduces waste and enables better user experiences regardless of the Content-Type.</p>
 <h1 id="rfc.section.4"><a href="#rfc.section.4">4.</a> <a href="#push-assets-header" id="push-assets-header">Push-Assets Header</a></h1>
 <pre>
 Push-Assets = [*][Asset-Key=Caching-Headers][;Asset-Key=Caching-Headers]
@@ -587,29 +597,29 @@ Push-Asset-Key = [$][Asset-Key]
 <pre>
 Push-Asset-Key = core-bundle.js
 </pre>
-<p id="rfc.section.5.1.p.1">By naming an asset, you MAY share that asset across multiple documents, and MAY change the URL as necessary.</p>
-<h1 id="rfc.section.5.2"><a href="#rfc.section.5.2">5.2.</a> <a href="#push-asset-key-url" id="push-asset-key-url">Key from URL</a></h1>
+<p id="rfc.section.5.1.p.1">By naming an asset, you MAY share that asset across multiple documents, and MAY change the URI <a href="#RFC3986">[RFC3986]</a> as necessary.</p>
+<h1 id="rfc.section.5.2"><a href="#rfc.section.5.2">5.2.</a> <a href="#push-asset-key-uri" id="push-asset-key-uri">Key from URI Path</a></h1>
 <pre>
 Push-Asset-Key = $
 </pre>
-<p id="rfc.section.5.2.p.1">Where <samp>$</samp> is reserved as a short-hand for the client to recognize the key as the URL Path, and MUST NOT include the querystring.</p>
-<p id="rfc.section.5.2.p.2">Example URL of <samp>/my/document?some=thing</samp> would by keyed as <samp>/my/document</samp>.</p>
+<p id="rfc.section.5.2.p.1">Where <samp>$</samp> is reserved as a short-hand for the client to recognize the key as the URI Path <a href="#RFC3986">[RFC3986]</a>, and MUST NOT include the query string.</p>
+<p id="rfc.section.5.2.p.2">Example URI Path <a href="#RFC3986">[RFC3986]</a> of <samp>/my/document?some=thing</samp> would by keyed as <samp>/my/document</samp>.</p>
 <h1 id="rfc.section.6"><a href="#rfc.section.6">6.</a> <a href="#push-asset-match-header" id="push-asset-match-header">Push-Asset-Match Header</a></h1>
 <pre>
-Push-Asset-Match = Asset-Match
+Push-Asset-Match = Asset-Path[;Asset-Path]
 </pre>
 <p id="rfc.section.6.p.1">An OPTIONAL <samp>PUSH_PROMISE</samp> Response Header.</p>
-<p id="rfc.section.6.p.2">An Asset-Match supports the lexical pattern of the URL (minus querystring) to match, and MAY end by reserved wildcard <samp>*</samp> to indicate matching all requests "equal or greater than" the URL (minus querystring).</p>
+<p id="rfc.section.6.p.2">An Asset-Match supports the lexical matching of the URI Path <a href="#RFC3986">[RFC3986]</a>, and MAY end with reserved wildcard <samp>*</samp> to indicate matching all requests "equal or greater than" the URI Path.  While one or more Asset-Path's may be provided, they SHOULD be consistent between requests to avoid any caching proxies from serving varying responses. Usage of Vary header field (Section 7.1.4 of <a href="#RFC3986">[RFC3986]</a>) MAY be applied with <samp>Push-Asset-Match</samp> to permit varying responses, but SHOULD NOT be used in most scenarios to avoid unnecessary complexity.</p>
 <h1 id="rfc.section.6.1"><a href="#rfc.section.6.1">6.1.</a> <a href="#push-asset-match-partial" id="push-asset-match-partial">Match Similar Requests</a></h1>
 <pre>
 Push-Asset-Match = /some-path/*
 </pre>
-<p id="rfc.section.6.1.p.1">Where all requests with URL (minus querystring) greater than or equal to <samp>/some-path/</samp> will be matched.</p>
+<p id="rfc.section.6.1.p.1">Where all requests with URI Path <a href="#RFC3986">[RFC3986]</a> greater than or equal to <samp>/some-path/</samp> will be matched.</p>
 <h1 id="rfc.section.6.2"><a href="#rfc.section.6.2">6.2.</a> <a href="#push-asset-match-all" id="push-asset-match-all">Match All Requests</a></h1>
 <pre>
 Push-Asset-Match = *
 </pre>
-<p><samp>*</samp> by itself corresponds to "match all requests".</p>
+<p><samp>*</samp> by itself corresponds to "match all requests". This is the equivalent of <samp>/*</samp>.</p>
 <h1 id="rfc.references"><a href="#rfc.references">7.</a> References</h1>
 <h1 id="rfc.references.1"><a href="#rfc.references.1">7.1.</a> Normative References</h1>
 <table>
@@ -642,6 +652,18 @@ Push-Asset-Match = *
         <b id="HighPerformance">[HighPerformance]</b>
       </td>
       <td class="top"><a>Grigorik, I.</a>, "<a>High Performance Browser Networking</a>", September 2013.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="RFC2045">[RFC2045]</b>
+      </td>
+      <td class="top"><a>Freed, N.</a> and <a>N. Borenstein</a>, "<a href="http://tools.ietf.org/html/rfc2045">Multipurpose Internet Mail Extensions (MIME) Part One: Format of Internet Message Bodies</a>", RFC 2045, DOI 10.17487/RFC2045, November 1996.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="RFC3986">[RFC3986]</b>
+      </td>
+      <td class="top"><a>Berners-Lee, T.</a>, <a>Fielding, R.</a> and <a>L. Masinter</a>, "<a href="http://tools.ietf.org/html/rfc3986">Uniform Resource Identifier (URI): Generic Syntax</a>", STD 66, RFC 3986, DOI 10.17487/RFC3986, January 2005.</td>
     </tr>
     <tr>
       <td class="reference">

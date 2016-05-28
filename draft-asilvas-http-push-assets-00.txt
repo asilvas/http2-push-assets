@@ -5,7 +5,7 @@
 Network Working Group                                          A. Silvas
 Internet-Draft                                                   GoDaddy
 Intended status: Experimental                             June TBD, 2016
-Expires: November 23, 2016
+Expires: November 29, 2016
 
 
                         Push-Assets Header Field
@@ -13,10 +13,10 @@ Expires: November 23, 2016
 
 Abstract
 
-   "Push-Assets" header combined with child headers "Push-Asset-Key" and
-   "Push-Asset-Match" provide necessary state to be negogiated between
-   client and server, enabling efficient usage of "Server Push" on every
-   request.
+   "Push-Assets" request header combined with response headers "Push-
+   Asset-Key" and "Push-Asset-Match" provide necessary state to be
+   negotiated between client and server, offering greatly improved usage
+   HTTP/2 "Server Push" on every request.
 
 Status of This Memo
 
@@ -33,7 +33,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on November 23, 2016.
+   This Internet-Draft will expire on November 29, 2016.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Silvas                  Expires November 23, 2016               [Page 1]
+Silvas                  Expires November 29, 2016               [Page 1]
 
 Internet-Draft                 Push-Assets                     June 2016
 
@@ -67,35 +67,35 @@ Table of Contents
      3.1.  First Load Experience . . . . . . . . . . . . . . . . . .   4
      3.2.  Subsequent Load Experience  . . . . . . . . . . . . . . .   4
      3.3.  Proxy Optimization  . . . . . . . . . . . . . . . . . . .   4
-     3.4.  Non-Browser Clients . . . . . . . . . . . . . . . . . . .   4
-     3.5.  Alternative Document Formats  . . . . . . . . . . . . . .   4
+     3.4.  Non-Browser Clients . . . . . . . . . . . . . . . . . . .   5
+     3.5.  Alternative Content Types . . . . . . . . . . . . . . . .   5
    4.  Push-Assets Header  . . . . . . . . . . . . . . . . . . . . .   5
      4.1.  Caching Headers . . . . . . . . . . . . . . . . . . . . .   5
      4.2.  Empty Cache Request . . . . . . . . . . . . . . . . . . .   5
-   5.  Push-Asset-Key Header . . . . . . . . . . . . . . . . . . . .   5
-     5.1.  Named Key . . . . . . . . . . . . . . . . . . . . . . . .   5
-     5.2.  Key from URL  . . . . . . . . . . . . . . . . . . . . . .   5
+   5.  Push-Asset-Key Header . . . . . . . . . . . . . . . . . . . .   6
+     5.1.  Named Key . . . . . . . . . . . . . . . . . . . . . . . .   6
+     5.2.  Key from URI Path . . . . . . . . . . . . . . . . . . . .   6
    6.  Push-Asset-Match Header . . . . . . . . . . . . . . . . . . .   6
-     6.1.  Match Similar Requests  . . . . . . . . . . . . . . . . .   6
-     6.2.  Match All Requests  . . . . . . . . . . . . . . . . . . .   6
-   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   6
-     7.1.  Normative References  . . . . . . . . . . . . . . . . . .   6
+     6.1.  Match Similar Requests  . . . . . . . . . . . . . . . . .   7
+     6.2.  Match All Requests  . . . . . . . . . . . . . . . . . . .   7
+   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     7.1.  Normative References  . . . . . . . . . . . . . . . . . .   7
      7.2.  Informative References  . . . . . . . . . . . . . . . . .   7
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   7
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   8
 
 1.  Introduction
 
    As described in [HighPerformance], transfer sizes and document
    requests continue to increase.  While network conditions continue to
    improve, resulting in lower latencies and increased bandwidth,
-   HTTP/1.1 ([RFC7230] and [RFC7231]) fails to address the underlining
+   HTTP/1.1 ([RFC7230] and [RFC7231]) fails to address the underlying
    problem of document dependencies and the resulting "waterfall" of
    blocked requests.
 
    HTTP/2 [RFC7540] aims to address some of these problems, by way of
    Streams and Multiplexing, combined with HTTP/2 [RFC7540] Server Push.
    A ruthless combination, addressing "head-of-line blocking" through
-   Multiplexing, and optimist pre-loading by way of Server Push.
+   Multiplexing, and optimistic pre-loading by way of Server Push.
 
    Where "Server Push" begins to fall short is around client state,
    leaving it up to servers to leverage existing HTTP State Management
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Silvas                  Expires November 23, 2016               [Page 2]
+Silvas                  Expires November 29, 2016               [Page 2]
 
 Internet-Draft                 Push-Assets                     June 2016
 
@@ -117,7 +117,7 @@ Internet-Draft                 Push-Assets                     June 2016
    This document aims to address document dependency state by looking to
    Caching [RFC7234] familiar with existing HTTP/1.1 requests (see
    [RFC7230] and [RFC7231]).  By pulling this state data into the parent
-   request, servers are able to intellegently and responsibly "Server
+   request, servers are able to intelligently and responsibly "Server
    Push" only missing or outdated dependencies.
 
 1.1.  Terminology
@@ -132,10 +132,9 @@ Internet-Draft                 Push-Assets                     June 2016
 
 2.  Understanding The Problem
 
-   Here we can begin to see the problem with vanilla HTTP/2 [RFC7540]
-   Server Push using one of many custom cookie-based implementations.
-
-                               The problem.
+    Here we can begin to see the problem with vanilla HTTP/2 [RFC7540]
+   Server Push using one of many custom cookie-based implementations to
+                               manage state.
 
 
      +---------------+------------------+
@@ -165,15 +164,14 @@ Internet-Draft                 Push-Assets                     June 2016
 
 
 
-Silvas                  Expires November 23, 2016               [Page 3]
+
+Silvas                  Expires November 29, 2016               [Page 3]
 
 Internet-Draft                 Push-Assets                     June 2016
 
 
    With "Push-Assets" enabled both client and server adhere to a strict
-   dependency state contract.
-
-                               The solution.
+                        dependency state contract.
 
 
      +---------------+------------------+
@@ -199,32 +197,59 @@ Internet-Draft                 Push-Assets                     June 2016
 
 3.1.  First Load Experience
 
-   TODO
+   Often the most import visit to a site is the first.  "Push-Assets"
+   provides the necessary client state for the server to confidently
+   know which resources are missing or outdated.
 
 3.2.  Subsequent Load Experience
 
-   TODO
+   As users navigate to previously visited pages, or new pages where
+   some shared resources have been cached, "Push-Assets" provides ample
+   client state to continue making efficient use of "Server Push", only
+   sending what resources the client does not already have.
 
 3.3.  Proxy Optimization
 
-   TODO
+   On one end of the spectrum of proxies lies your server proxies, with
+                          CDN's on the other end.
 
-3.4.  Non-Browser Clients
 
-   TODO
+   [Client] <==[CDN]<=======================[Proxy]<==[Origin]
 
-3.5.  Alternative Document Formats
 
-   TODO
-
+                                 Figure 3
 
 
 
-
-Silvas                  Expires November 23, 2016               [Page 4]
+Silvas                  Expires November 29, 2016               [Page 4]
 
 Internet-Draft                 Push-Assets                     June 2016
 
+
+   With "Push-Assets" providing efficient communication between two
+   points, this may lend to potential benefits between Proxies and their
+   Origin server as well.  While the Proxy nearest your Client SHOULD
+   support "Push-Assets" for best results, it MAY elect not to also
+   leverage "Push-Assets" between the Proxy and Origin.
+
+   For proxies with caching nearest to Client (namely CDN's), they may
+   further benefit from "Push-Assets" for an efficient utilization of
+   "Server Push".
+
+3.4.  Non-Browser Clients
+
+   Leveraging the benefits of "Push-Assets" allows for more efficient
+   communication with compatible servers.  The more complex the data,
+   the greater the potential benefits.
+
+3.5.  Alternative Content Types
+
+   With "Push-Assets" being nothing more than an HTTP Header, extending
+   the benefits to other Content Type's [RFC2045] is entirely up to the
+   Client and Server.  Consider circumstances where you retrieve a JSON
+   document, which signals relationships with other documents.  "Push-
+   Assets" reduces waste and enables better user experiences regardless
+   of the Content-Type.
 
 4.  Push-Assets Header
 
@@ -248,6 +273,15 @@ Push-Assets = Asset-Key=[etag(etag-value),][last-modified(date)][no-push]
 
    Push-Assets = *
 
+
+
+
+
+Silvas                  Expires November 29, 2016               [Page 5]
+
+Internet-Draft                 Push-Assets                     June 2016
+
+
    Where "*" informs server to Push all push-enabled dependencies, if
    "Push-Assets" is enabled.  Servers are NOT required to push any or
    all dependencies, but MUST push all missing or outdated push-enabled
@@ -267,50 +301,56 @@ Push-Assets = Asset-Key=[etag(etag-value),][last-modified(date)][no-push]
    Push-Asset-Key = core-bundle.js
 
    By naming an asset, you MAY share that asset across multiple
-   documents, and MAY change the URL as necessary.
+   documents, and MAY change the URI [RFC3986] as necessary.
 
-5.2.  Key from URL
+5.2.  Key from URI Path
 
    Push-Asset-Key = $
 
-
-
-
-
-Silvas                  Expires November 23, 2016               [Page 5]
-
-Internet-Draft                 Push-Assets                     June 2016
-
-
    Where "$" is reserved as a short-hand for the client to recognize the
-   key as the URL Path, and MUST NOT include the querystring.
+   key as the URI Path [RFC3986], and MUST NOT include the query string.
 
-   Example URL of "/my/document?some=thing" would by keyed as "/my/
-   document".
+   Example URI Path [RFC3986] of "/my/document?some=thing" would by
+   keyed as "/my/document".
 
 6.  Push-Asset-Match Header
 
-   Push-Asset-Match = Asset-Match
+   Push-Asset-Match = Asset-Path[;Asset-Path]
 
    An OPTIONAL "PUSH_PROMISE" Response Header.
 
-   An Asset-Match supports the lexical pattern of the URL (minus
-   querystring) to match, and MAY end by reserved wildcard "*" to
-   indicate matching all requests "equal or greater than" the URL (minus
-   querystring).
+   An Asset-Match supports the lexical matching of the URI Path
+   [RFC3986], and MAY end with reserved wildcard "*" to indicate
+   matching all requests "equal or greater than" the URI Path.  While
+   one or more Asset-Path's may be provided, they SHOULD be consistent
+   between requests to avoid any caching proxies from serving varying
+   responses.  Usage of Vary header field (Section 7.1.4 of [RFC3986])
+   MAY be applied with "Push-Asset-Match" to permit varying responses,
+   but SHOULD NOT be used in most scenarios to avoid unnecessary
+   complexity.
+
+
+
+
+
+Silvas                  Expires November 29, 2016               [Page 6]
+
+Internet-Draft                 Push-Assets                     June 2016
+
 
 6.1.  Match Similar Requests
 
    Push-Asset-Match = /some-path/*
 
-   Where all requests with URL (minus querystring) greater than or equal
-   to "/some-path/" will be matched.
+   Where all requests with URI Path [RFC3986] greater than or equal to
+   "/some-path/" will be matched.
 
 6.2.  Match All Requests
 
    Push-Asset-Match = *
 
-   "*" by itself corresponds to "match all requests".
+   "*" by itself corresponds to "match all requests".  This is the
+   equivalent of "/*".
 
 7.  References
 
@@ -331,18 +371,28 @@ Internet-Draft                 Push-Assets                     June 2016
               DOI 10.17487/RFC7540, May 2015,
               <http://www.rfc-editor.org/info/rfc7540>.
 
-
-
-Silvas                  Expires November 23, 2016               [Page 6]
-
-Internet-Draft                 Push-Assets                     June 2016
-
-
 7.2.  Informative References
 
    [HighPerformance]
               Grigorik, I., "High Performance Browser Networking",
               September 2013.
+
+   [RFC2045]  Freed, N. and N. Borenstein, "Multipurpose Internet Mail
+              Extensions (MIME) Part One: Format of Internet Message
+              Bodies", RFC 2045, DOI 10.17487/RFC2045, November 1996,
+              <http://www.rfc-editor.org/info/rfc2045>.
+
+   [RFC3986]  Berners-Lee, T., Fielding, R., and L. Masinter, "Uniform
+              Resource Identifier (URI): Generic Syntax", STD 66,
+              RFC 3986, DOI 10.17487/RFC3986, January 2005,
+              <http://www.rfc-editor.org/info/rfc3986>.
+
+
+
+Silvas                  Expires November 29, 2016               [Page 7]
+
+Internet-Draft                 Push-Assets                     June 2016
+
 
    [RFC6265]  Barth, A., "HTTP State Management Mechanism", RFC 6265,
               DOI 10.17487/RFC6265, April 2011,
@@ -389,4 +439,10 @@ Author's Address
 
 
 
-Silvas                  Expires November 23, 2016               [Page 7]
+
+
+
+
+
+
+Silvas                  Expires November 29, 2016               [Page 8]

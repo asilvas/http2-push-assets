@@ -405,8 +405,8 @@
   <meta name="dct.creator" content="Silvas, A." />
   <meta name="dct.identifier" content="urn:ietf:id:draft-asilvas-http-push-assets-00" />
   <meta name="dct.issued" scheme="ISO8601" content="2016-6-TBD" />
-  <meta name="dct.abstract" content="" />
-  <meta name="description" content="" />
+  <meta name="dct.abstract" content="Push-Assets is a header field that extends client state for dependent requests, enabling servers to utilize HTTP/2 Server Push with confidence in knowing what resources SHOULD or SHOULD NOT be sent, reducing waste, and ultimately providing an improved user experience. This document will provide an overview of Push-Assets requirements, and describes any implementation concerns." />
+  <meta name="description" content="Push-Assets is a header field that extends client state for dependent requests, enabling servers to utilize HTTP/2 Server Push with confidence in knowing what resources SHOULD or SHOULD NOT be sent, reducing waste, and ultimately providing an improved user experience. This document will provide an overview of Push-Assets requirements, and describes any implementation concerns." />
 
 </head>
 
@@ -442,7 +442,7 @@
   <h1 id="rfc.abstract">
   <a href="#rfc.abstract">Abstract</a>
 </h1>
-<p><samp>Push-Assets</samp> request header combined with response headers <samp>Push-Asset-Key</samp> and <samp>Push-Asset-Match</samp> provide necessary state to be negotiated between client and server, offering greatly improved usage HTTP/2 <samp>Server Push</samp> on every request.</p>
+<p>Push-Assets is a header field that extends client state for dependent requests, enabling servers to utilize HTTP/2 Server Push with confidence in knowing what resources SHOULD or SHOULD NOT be sent, reducing waste, and ultimately providing an improved user experience. This document will provide an overview of Push-Assets requirements, and describes any implementation concerns.</p>
 <h1 id="rfc.status">
   <a href="#rfc.status">Status of This Memo</a>
 </h1>
@@ -489,7 +489,7 @@
 
   <h1 id="rfc.section.1"><a href="#rfc.section.1">1.</a> <a href="#introduction" id="introduction">Introduction</a></h1>
 <p id="rfc.section.1.p.1">As described in <a href="#HighPerformance">[HighPerformance]</a>, transfer sizes and document requests continue to increase. While network conditions continue to improve, resulting in lower latencies and increased bandwidth, HTTP/1.1 (<a href="#RFC7230">[RFC7230]</a> and <a href="#RFC7231">[RFC7231]</a>) fails to address the underlying problem of document dependencies and the resulting "waterfall" of blocked requests.</p>
-<p id="rfc.section.1.p.2">HTTP/2 <a href="#RFC7540">[RFC7540]</a> aims to address some of these problems, by way of Streams and Multiplexing, combined with HTTP/2 <a href="#RFC7540">[RFC7540]</a> Server Push. A ruthless combination, addressing "head-of-line blocking" through Multiplexing, and optimistic pre-loading by way of Server Push.</p>
+<p id="rfc.section.1.p.2">HTTP/2 <a href="#RFC7540">[RFC7540]</a> aims to address some of these problems, by way of Streams and Multiplexing, combined with HTTP/2 Server Push <a href="#RFC7540">[RFC7540]</a>. A ruthless combination, addressing "head-of-line blocking" through Multiplexing, and optimistic pre-loading by way of Server Push.</p>
 <p id="rfc.section.1.p.3">Where <samp>Server Push</samp> begins to fall short is around client state, leaving it up to servers to leverage existing HTTP State Management Mechanism <a href="#RFC6265">[RFC6265]</a> with Cookies, which are not purpose built to solve the problem of document dependency state. This lack of client state can result in HTTP/2 <a href="#RFC7540">[RFC7540]</a> <samp>RST_STREAM</samp>, where-in in-flight <samp>Server Push</samp> Streams will be cancelled, incurring client and server waste.</p>
 <p id="rfc.section.1.p.4">This document aims to address document dependency state by looking to Caching <a href="#RFC7234">[RFC7234]</a> familiar with existing HTTP/1.1 requests (see <a href="#RFC7230">[RFC7230]</a> and <a href="#RFC7231">[RFC7231]</a>). By pulling this state data into the parent request, servers are able to intelligently and responsibly <samp>Server Push</samp> only missing or outdated dependencies.</p>
 <h1 id="rfc.section.1.1"><a href="#rfc.section.1.1">1.1.</a> <a href="#Terminology" id="Terminology">Terminology</a></h1>
@@ -632,9 +632,33 @@ Push-Asset-Match = *
     </tr>
     <tr>
       <td class="reference">
+        <b id="RFC3986">[RFC3986]</b>
+      </td>
+      <td class="top"><a>Berners-Lee, T.</a>, <a>Fielding, R.</a> and <a>L. Masinter</a>, "<a href="http://tools.ietf.org/html/rfc3986">Uniform Resource Identifier (URI): Generic Syntax</a>", STD 66, RFC 3986, DOI 10.17487/RFC3986, January 2005.</td>
+    </tr>
+    <tr>
+      <td class="reference">
         <b id="RFC5234">[RFC5234]</b>
       </td>
       <td class="top"><a>Crocker, D.</a> and <a>P. Overell</a>, "<a href="http://tools.ietf.org/html/rfc5234">Augmented BNF for Syntax Specifications: ABNF</a>", STD 68, RFC 5234, DOI 10.17487/RFC5234, January 2008.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="RFC7230">[RFC7230]</b>
+      </td>
+      <td class="top"><a>Fielding, R.</a> and <a>J. Reschke</a>, "<a href="http://tools.ietf.org/html/rfc7230">Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing</a>", RFC 7230, DOI 10.17487/RFC7230, June 2014.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="RFC7231">[RFC7231]</b>
+      </td>
+      <td class="top"><a>Fielding, R.</a> and <a>J. Reschke</a>, "<a href="http://tools.ietf.org/html/rfc7231">Hypertext Transfer Protocol (HTTP/1.1): Semantics and Content</a>", RFC 7231, DOI 10.17487/RFC7231, June 2014.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="RFC7234">[RFC7234]</b>
+      </td>
+      <td class="top"><a>Fielding, R.</a>, <a>Nottingham, M.</a> and <a>J. Reschke</a>, "<a href="http://tools.ietf.org/html/rfc7234">Hypertext Transfer Protocol (HTTP/1.1): Caching</a>", RFC 7234, DOI 10.17487/RFC7234, June 2014.</td>
     </tr>
     <tr>
       <td class="reference">
@@ -661,33 +685,9 @@ Push-Asset-Match = *
     </tr>
     <tr>
       <td class="reference">
-        <b id="RFC3986">[RFC3986]</b>
-      </td>
-      <td class="top"><a>Berners-Lee, T.</a>, <a>Fielding, R.</a> and <a>L. Masinter</a>, "<a href="http://tools.ietf.org/html/rfc3986">Uniform Resource Identifier (URI): Generic Syntax</a>", STD 66, RFC 3986, DOI 10.17487/RFC3986, January 2005.</td>
-    </tr>
-    <tr>
-      <td class="reference">
         <b id="RFC6265">[RFC6265]</b>
       </td>
       <td class="top"><a>Barth, A.</a>, "<a href="http://tools.ietf.org/html/rfc6265">HTTP State Management Mechanism</a>", RFC 6265, DOI 10.17487/RFC6265, April 2011.</td>
-    </tr>
-    <tr>
-      <td class="reference">
-        <b id="RFC7230">[RFC7230]</b>
-      </td>
-      <td class="top"><a>Fielding, R.</a> and <a>J. Reschke</a>, "<a href="http://tools.ietf.org/html/rfc7230">Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing</a>", RFC 7230, DOI 10.17487/RFC7230, June 2014.</td>
-    </tr>
-    <tr>
-      <td class="reference">
-        <b id="RFC7231">[RFC7231]</b>
-      </td>
-      <td class="top"><a>Fielding, R.</a> and <a>J. Reschke</a>, "<a href="http://tools.ietf.org/html/rfc7231">Hypertext Transfer Protocol (HTTP/1.1): Semantics and Content</a>", RFC 7231, DOI 10.17487/RFC7231, June 2014.</td>
-    </tr>
-    <tr>
-      <td class="reference">
-        <b id="RFC7234">[RFC7234]</b>
-      </td>
-      <td class="top"><a>Fielding, R.</a>, <a>Nottingham, M.</a> and <a>J. Reschke</a>, "<a href="http://tools.ietf.org/html/rfc7234">Hypertext Transfer Protocol (HTTP/1.1): Caching</a>", RFC 7234, DOI 10.17487/RFC7234, June 2014.</td>
     </tr>
   </tbody>
 </table>

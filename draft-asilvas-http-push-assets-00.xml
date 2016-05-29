@@ -29,13 +29,13 @@
 
     <abstract>
 
-    <t><spanx style="verb">Push-Assets</spanx> request header combined with response headers
-    <spanx style="verb">Push-Asset-Key</spanx> and <spanx style="verb">Push-Asset-Match</spanx>
-    provide necessary state to be negotiated between client and server, offering greatly
-    improved usage HTTP/2 <spanx style="verb">Server Push</spanx> on every request.</t>
+    <t>Push-Assets is a header field that extends client state for dependent requests, enabling
+    servers to utilize HTTP/2 Server Push with confidence in knowing
+    what resources SHOULD or SHOULD NOT be sent, reducing waste, and ultimately providing an
+    improved user experience. This document will provide an overview of Push-Assets requirements,
+    and describes any implementation concerns.</t>
 
     </abstract>
-
 
   </front>
 
@@ -50,7 +50,7 @@ bandwidth, HTTP/1.1 (<xref target="RFC7230"/> and <xref target="RFC7231"/>) fail
 underlying problem of document dependencies and the resulting "waterfall" of blocked requests.</t>
 
 <t>HTTP/2 <xref target="RFC7540"/> aims to address some of these problems, by way of Streams and
-Multiplexing, combined with HTTP/2 <xref target="RFC7540"/> Server Push. A ruthless combination,
+Multiplexing, combined with HTTP/2 Server Push <xref target="RFC7540"/>. A ruthless combination,
 addressing "head-of-line blocking" through Multiplexing, and optimistic pre-loading by way of
 Server Push.</t>
 
@@ -384,42 +384,6 @@ the equivalent of <spanx style="verb">/*</spanx>.</t>
 </reference>
 
 
-
-
-    </references>
-
-    <references title='Informative References'>
-
-
-
-<reference  anchor='RFC7230' target='http://www.rfc-editor.org/info/rfc7230'>
-<front>
-<title>Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing</title>
-<author initials='R.' surname='Fielding' fullname='R. Fielding' role='editor'><organization /></author>
-<author initials='J.' surname='Reschke' fullname='J. Reschke' role='editor'><organization /></author>
-<date year='2014' month='June' />
-<abstract><t>The Hypertext Transfer Protocol (HTTP) is a stateless application-level protocol for distributed, collaborative, hypertext information systems.  This document provides an overview of HTTP architecture and its associated terminology, defines the &quot;http&quot; and &quot;https&quot; Uniform Resource Identifier (URI) schemes, defines the HTTP/1.1 message syntax and parsing requirements, and describes related security concerns for implementations.</t></abstract>
-</front>
-<seriesInfo name='RFC' value='7230'/>
-<seriesInfo name='DOI' value='10.17487/RFC7230'/>
-</reference>
-
-
-
-<reference  anchor='RFC6265' target='http://www.rfc-editor.org/info/rfc6265'>
-<front>
-<title>HTTP State Management Mechanism</title>
-<author initials='A.' surname='Barth' fullname='A. Barth'><organization /></author>
-<date year='2011' month='April' />
-<abstract><t>This document defines the HTTP Cookie and Set-Cookie header fields. These header fields can be used by HTTP servers to store state (called cookies) at HTTP user agents, letting the servers maintain a stateful session over the mostly stateless HTTP protocol.  Although cookies have many historical infelicities that degrade their security and privacy, the Cookie and Set-Cookie header fields are widely used on the Internet.  This document obsoletes RFC 2965.  [STANDARDS-TRACK]</t></abstract>
-</front>
-<seriesInfo name='RFC' value='6265'/>
-<seriesInfo name='DOI' value='10.17487/RFC6265'/>
-</reference>
-
-
-
-
 <reference  anchor='RFC7234' target='http://www.rfc-editor.org/info/rfc7234'>
 <front>
 <title>Hypertext Transfer Protocol (HTTP/1.1): Caching</title>
@@ -432,8 +396,6 @@ the equivalent of <spanx style="verb">/*</spanx>.</t>
 <seriesInfo name='RFC' value='7234'/>
 <seriesInfo name='DOI' value='10.17487/RFC7234'/>
 </reference>
-
-
 
 
 <reference  anchor='RFC7231' target='http://www.rfc-editor.org/info/rfc7231'>
@@ -461,6 +423,38 @@ the equivalent of <spanx style="verb">/*</spanx>.</t>
 <seriesInfo name='STD' value='66'/>
 <seriesInfo name='RFC' value='3986'/>
 <seriesInfo name='DOI' value='10.17487/RFC3986'/>
+</reference>
+
+
+<reference  anchor='RFC7230' target='http://www.rfc-editor.org/info/rfc7230'>
+<front>
+<title>Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing</title>
+<author initials='R.' surname='Fielding' fullname='R. Fielding' role='editor'><organization /></author>
+<author initials='J.' surname='Reschke' fullname='J. Reschke' role='editor'><organization /></author>
+<date year='2014' month='June' />
+<abstract><t>The Hypertext Transfer Protocol (HTTP) is a stateless application-level protocol for distributed, collaborative, hypertext information systems.  This document provides an overview of HTTP architecture and its associated terminology, defines the &quot;http&quot; and &quot;https&quot; Uniform Resource Identifier (URI) schemes, defines the HTTP/1.1 message syntax and parsing requirements, and describes related security concerns for implementations.</t></abstract>
+</front>
+<seriesInfo name='RFC' value='7230'/>
+<seriesInfo name='DOI' value='10.17487/RFC7230'/>
+</reference>
+
+
+
+    </references>
+
+    <references title='Informative References'>
+
+
+
+<reference  anchor='RFC6265' target='http://www.rfc-editor.org/info/rfc6265'>
+<front>
+<title>HTTP State Management Mechanism</title>
+<author initials='A.' surname='Barth' fullname='A. Barth'><organization /></author>
+<date year='2011' month='April' />
+<abstract><t>This document defines the HTTP Cookie and Set-Cookie header fields. These header fields can be used by HTTP servers to store state (called cookies) at HTTP user agents, letting the servers maintain a stateful session over the mostly stateless HTTP protocol.  Although cookies have many historical infelicities that degrade their security and privacy, the Cookie and Set-Cookie header fields are widely used on the Internet.  This document obsoletes RFC 2965.  [STANDARDS-TRACK]</t></abstract>
+</front>
+<seriesInfo name='RFC' value='6265'/>
+<seriesInfo name='DOI' value='10.17487/RFC6265'/>
 </reference>
 
 

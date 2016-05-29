@@ -2,6 +2,7 @@
 
 
 
+
 Network Working Group                                          A. Silvas
 Internet-Draft                                                   GoDaddy
 Intended status: Experimental                             June TBD, 2016
@@ -13,10 +14,12 @@ Expires: November 29, 2016
 
 Abstract
 
-   "Push-Assets" request header combined with response headers "Push-
-   Asset-Key" and "Push-Asset-Match" provide necessary state to be
-   negotiated between client and server, offering greatly improved usage
-   HTTP/2 "Server Push" on every request.
+   Push-Assets is a header field that extends client state for dependent
+   requests, enabling servers to utilize HTTP/2 Server Push with
+   confidence in knowing what resources SHOULD or SHOULD NOT be sent,
+   reducing waste, and ultimately providing an improved user experience.
+   This document will provide an overview of Push-Assets requirements,
+   and describes any implementation concerns.
 
 Status of This Memo
 
@@ -47,8 +50,6 @@ Copyright Notice
    carefully, as they describe your rights and restrictions with respect
    to this document.  Code Components extracted from this document must
    include Simplified BSD License text as described in Section 4.e of
-   the Trust Legal Provisions and are provided without warranty as
-   described in the Simplified BSD License.
 
 
 
@@ -57,6 +58,9 @@ Silvas                  Expires November 29, 2016               [Page 1]
 
 Internet-Draft                 Push-Assets                     June 2016
 
+
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
 
 Table of Contents
 
@@ -80,7 +84,7 @@ Table of Contents
      6.2.  Match All Requests  . . . . . . . . . . . . . . . . . . .   7
    7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   7
      7.1.  Normative References  . . . . . . . . . . . . . . . . . .   7
-     7.2.  Informative References  . . . . . . . . . . . . . . . . .   7
+     7.2.  Informative References  . . . . . . . . . . . . . . . . .   8
    Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   8
 
 1.  Introduction
@@ -93,7 +97,7 @@ Table of Contents
    blocked requests.
 
    HTTP/2 [RFC7540] aims to address some of these problems, by way of
-   Streams and Multiplexing, combined with HTTP/2 [RFC7540] Server Push.
+   Streams and Multiplexing, combined with HTTP/2 Server Push [RFC7540].
    A ruthless combination, addressing "head-of-line blocking" through
    Multiplexing, and optimistic pre-loading by way of Server Push.
 
@@ -102,9 +106,6 @@ Table of Contents
    Mechanism [RFC6265] with Cookies, which are not purpose built to
    solve the problem of document dependency state.  This lack of client
    state can result in HTTP/2 [RFC7540] "RST_STREAM", where-in in-flight
-   "Server Push" Streams will be cancelled, incurring client and server
-   waste.
-
 
 
 
@@ -113,6 +114,9 @@ Silvas                  Expires November 29, 2016               [Page 2]
 
 Internet-Draft                 Push-Assets                     June 2016
 
+
+   "Server Push" Streams will be cancelled, incurring client and server
+   waste.
 
    This document aims to address document dependency state by looking to
    Caching [RFC7234] familiar with existing HTTP/1.1 requests (see
@@ -159,9 +163,6 @@ Internet-Draft                 Push-Assets                     June 2016
 
 
                                  Figure 1
-
-
-
 
 
 
@@ -361,10 +362,38 @@ Internet-Draft                 Push-Assets                     June 2016
               DOI 10.17487/RFC2119, March 1997,
               <http://www.rfc-editor.org/info/rfc2119>.
 
+   [RFC3986]  Berners-Lee, T., Fielding, R., and L. Masinter, "Uniform
+              Resource Identifier (URI): Generic Syntax", STD 66,
+              RFC 3986, DOI 10.17487/RFC3986, January 2005,
+              <http://www.rfc-editor.org/info/rfc3986>.
+
    [RFC5234]  Crocker, D., Ed. and P. Overell, "Augmented BNF for Syntax
               Specifications: ABNF", STD 68, RFC 5234,
               DOI 10.17487/RFC5234, January 2008,
               <http://www.rfc-editor.org/info/rfc5234>.
+
+   [RFC7230]  Fielding, R., Ed. and J. Reschke, Ed., "Hypertext Transfer
+              Protocol (HTTP/1.1): Message Syntax and Routing",
+              RFC 7230, DOI 10.17487/RFC7230, June 2014,
+              <http://www.rfc-editor.org/info/rfc7230>.
+
+   [RFC7231]  Fielding, R., Ed. and J. Reschke, Ed., "Hypertext Transfer
+              Protocol (HTTP/1.1): Semantics and Content", RFC 7231,
+              DOI 10.17487/RFC7231, June 2014,
+              <http://www.rfc-editor.org/info/rfc7231>.
+
+   [RFC7234]  Fielding, R., Ed., Nottingham, M., Ed., and J. Reschke,
+              Ed., "Hypertext Transfer Protocol (HTTP/1.1): Caching",
+              RFC 7234, DOI 10.17487/RFC7234, June 2014,
+              <http://www.rfc-editor.org/info/rfc7234>.
+
+
+
+
+Silvas                  Expires November 29, 2016               [Page 7]
+
+Internet-Draft                 Push-Assets                     June 2016
+
 
    [RFC7540]  Belshe, M., Peon, R., and M. Thomson, Ed., "Hypertext
               Transfer Protocol Version 2 (HTTP/2)", RFC 7540,
@@ -382,36 +411,9 @@ Internet-Draft                 Push-Assets                     June 2016
               Bodies", RFC 2045, DOI 10.17487/RFC2045, November 1996,
               <http://www.rfc-editor.org/info/rfc2045>.
 
-   [RFC3986]  Berners-Lee, T., Fielding, R., and L. Masinter, "Uniform
-              Resource Identifier (URI): Generic Syntax", STD 66,
-              RFC 3986, DOI 10.17487/RFC3986, January 2005,
-              <http://www.rfc-editor.org/info/rfc3986>.
-
-
-
-Silvas                  Expires November 29, 2016               [Page 7]
-
-Internet-Draft                 Push-Assets                     June 2016
-
-
    [RFC6265]  Barth, A., "HTTP State Management Mechanism", RFC 6265,
               DOI 10.17487/RFC6265, April 2011,
               <http://www.rfc-editor.org/info/rfc6265>.
-
-   [RFC7230]  Fielding, R., Ed. and J. Reschke, Ed., "Hypertext Transfer
-              Protocol (HTTP/1.1): Message Syntax and Routing",
-              RFC 7230, DOI 10.17487/RFC7230, June 2014,
-              <http://www.rfc-editor.org/info/rfc7230>.
-
-   [RFC7231]  Fielding, R., Ed. and J. Reschke, Ed., "Hypertext Transfer
-              Protocol (HTTP/1.1): Semantics and Content", RFC 7231,
-              DOI 10.17487/RFC7231, June 2014,
-              <http://www.rfc-editor.org/info/rfc7231>.
-
-   [RFC7234]  Fielding, R., Ed., Nottingham, M., Ed., and J. Reschke,
-              Ed., "Hypertext Transfer Protocol (HTTP/1.1): Caching",
-              RFC 7234, DOI 10.17487/RFC7234, June 2014,
-              <http://www.rfc-editor.org/info/rfc7234>.
 
 Author's Address
 
@@ -419,7 +421,6 @@ Author's Address
    GoDaddy
 
    Email: asilvas@godaddy.com
-
 
 
 

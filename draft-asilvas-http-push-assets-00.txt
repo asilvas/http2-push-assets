@@ -67,25 +67,25 @@ Table of Contents
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
      1.1.  Terminology . . . . . . . . . . . . . . . . . . . . . . .   3
    2.  Understanding The Problem . . . . . . . . . . . . . . . . . .   3
-   3.  Push Assets Use Cases . . . . . . . . . . . . . . . . . . . .   4
-     3.1.  First Load Experience . . . . . . . . . . . . . . . . . .   4
-     3.2.  Subsequent Load Experience  . . . . . . . . . . . . . . .   4
-     3.3.  Proxy Optimization  . . . . . . . . . . . . . . . . . . .   4
-     3.4.  Non-Browser Clients . . . . . . . . . . . . . . . . . . .   5
-     3.5.  Alternative Content Types . . . . . . . . . . . . . . . .   5
-   4.  Push-Assets Header  . . . . . . . . . . . . . . . . . . . . .   5
-     4.1.  Caching Headers . . . . . . . . . . . . . . . . . . . . .   5
-     4.2.  Empty Cache Request . . . . . . . . . . . . . . . . . . .   5
-   5.  Push-Asset-Key Header . . . . . . . . . . . . . . . . . . . .   6
-     5.1.  Named Key . . . . . . . . . . . . . . . . . . . . . . . .   6
-     5.2.  Key from URI Path . . . . . . . . . . . . . . . . . . . .   6
-   6.  Push-Asset-Match Header . . . . . . . . . . . . . . . . . . .   6
-     6.1.  Match Similar Requests  . . . . . . . . . . . . . . . . .   7
-     6.2.  Match All Requests  . . . . . . . . . . . . . . . . . . .   7
-   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   7
-     7.1.  Normative References  . . . . . . . . . . . . . . . . . .   7
-     7.2.  Informative References  . . . . . . . . . . . . . . . . .   8
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   8
+   3.  Push Assets Use Cases . . . . . . . . . . . . . . . . . . . .   5
+     3.1.  First Load Experience . . . . . . . . . . . . . . . . . .   5
+     3.2.  Subsequent Load Experience  . . . . . . . . . . . . . . .   5
+     3.3.  Proxy Optimization  . . . . . . . . . . . . . . . . . . .   6
+     3.4.  Non-Browser Clients . . . . . . . . . . . . . . . . . . .   6
+     3.5.  Alternative Content Types . . . . . . . . . . . . . . . .   6
+   4.  Push-Assets Header  . . . . . . . . . . . . . . . . . . . . .   6
+     4.1.  Caching Headers . . . . . . . . . . . . . . . . . . . . .   7
+     4.2.  Empty Cache Request . . . . . . . . . . . . . . . . . . .   7
+   5.  Push-Asset-Key Header . . . . . . . . . . . . . . . . . . . .   7
+     5.1.  Named Key . . . . . . . . . . . . . . . . . . . . . . . .   7
+     5.2.  Key from URI Path . . . . . . . . . . . . . . . . . . . .   7
+   6.  Push-Asset-Match Header . . . . . . . . . . . . . . . . . . .   7
+     6.1.  Match Similar Requests  . . . . . . . . . . . . . . . . .   8
+     6.2.  Match All Requests  . . . . . . . . . . . . . . . . . . .   8
+   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   8
+     7.1.  Normative References  . . . . . . . . . . . . . . . . . .   8
+     7.2.  Informative References  . . . . . . . . . . . . . . . . .   9
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   9
 
 1.  Introduction
 
@@ -136,9 +136,44 @@ Internet-Draft                 Push-Assets                     June 2016
 
 2.  Understanding The Problem
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Silvas                  Expires November 29, 2016               [Page 3]
+
+Internet-Draft                 Push-Assets                     June 2016
+
+
     Here we can begin to see the problem with vanilla HTTP/2 [RFC7540]
    Server Push using one of many custom cookie-based implementations to
-                               manage state.
+                           manage client state.
 
 
      +---------------+------------------+
@@ -149,6 +184,10 @@ Internet-Draft                 Push-Assets                     June 2016
                      | PUSH_PROMISE AB1 |
                      +------------------+
                      | Response A       |
+                     +------------------+
+                     | Response A1      |
+                     +------------------+
+                     | Response AB1     |
      +---------------+------------------+
      | Partial Cache | Request B        |
      +---------------+------------------+
@@ -158,6 +197,10 @@ Internet-Draft                 Push-Assets                     June 2016
                      +------------------+
                      | Response B       |
                      +------------------+
+                     | Response B1      |
+                     +------------------+
+                     | Response AB1     | <== EVIL
+                     +------------------+
                      | RST_STREAM AB1   | <== EVIL
                      +------------------+
 
@@ -166,7 +209,20 @@ Internet-Draft                 Push-Assets                     June 2016
 
 
 
-Silvas                  Expires November 29, 2016               [Page 3]
+
+
+
+
+
+
+
+
+
+
+
+
+
+Silvas                  Expires November 29, 2016               [Page 4]
 
 Internet-Draft                 Push-Assets                     June 2016
 
@@ -183,12 +239,18 @@ Internet-Draft                 Push-Assets                     June 2016
                      | PUSH_PROMISE AB1 |
                      +------------------+
                      | Response A       |
+                     +------------------+
+                     | Response A1      |
+                     +------------------+
+                     | Response AB1     |
      +---------------+------------------+
      | Partial Cache | Request B        |
      +---------------+------------------+
                      | PUSH_PROMISE B1  |
                      +------------------+
                      | Response B       |
+                     +------------------+
+                     | Response B1      |
                      +------------------+
 
 
@@ -209,6 +271,18 @@ Internet-Draft                 Push-Assets                     June 2016
    client state to continue making efficient use of "Server Push", only
    sending what resources the client does not already have.
 
+
+
+
+
+
+
+
+Silvas                  Expires November 29, 2016               [Page 5]
+
+Internet-Draft                 Push-Assets                     June 2016
+
+
 3.3.  Proxy Optimization
 
    On one end of the spectrum of proxies lies your server proxies, with
@@ -219,13 +293,6 @@ Internet-Draft                 Push-Assets                     June 2016
 
 
                                  Figure 3
-
-
-
-Silvas                  Expires November 29, 2016               [Page 4]
-
-Internet-Draft                 Push-Assets                     June 2016
-
 
    With "Push-Assets" providing efficient communication between two
    points, this may lend to potential benefits between Proxies and their
@@ -263,6 +330,15 @@ Push-Assets = [*][Asset-Key=Caching-Headers][;Asset-Key=Caching-Headers]
    An "Asset-Key" is the name of the asset uniquely identifiable by the
    document or matching documents.
 
+
+
+
+
+Silvas                  Expires November 29, 2016               [Page 6]
+
+Internet-Draft                 Push-Assets                     June 2016
+
+
 4.1.  Caching Headers
 
 Push-Assets = Asset-Key=[etag(etag-value),][last-modified(date)][no-push]
@@ -273,15 +349,6 @@ Push-Assets = Asset-Key=[etag(etag-value),][last-modified(date)][no-push]
 4.2.  Empty Cache Request
 
    Push-Assets = *
-
-
-
-
-
-Silvas                  Expires November 29, 2016               [Page 5]
-
-Internet-Draft                 Push-Assets                     June 2016
-
 
    Where "*" informs server to Push all push-enabled dependencies, if
    "Push-Assets" is enabled.  Servers are NOT required to push any or
@@ -320,6 +387,14 @@ Internet-Draft                 Push-Assets                     June 2016
 
    An OPTIONAL "PUSH_PROMISE" Response Header.
 
+
+
+
+Silvas                  Expires November 29, 2016               [Page 7]
+
+Internet-Draft                 Push-Assets                     June 2016
+
+
    An Asset-Match supports the lexical matching of the URI Path
    [RFC3986], and MAY end with reserved wildcard "*" to indicate
    matching all requests "equal or greater than" the URI Path.  While
@@ -329,15 +404,6 @@ Internet-Draft                 Push-Assets                     June 2016
    MAY be applied with "Push-Asset-Match" to permit varying responses,
    but SHOULD NOT be used in most scenarios to avoid unnecessary
    complexity.
-
-
-
-
-
-Silvas                  Expires November 29, 2016               [Page 6]
-
-Internet-Draft                 Push-Assets                     June 2016
-
 
 6.1.  Match Similar Requests
 
@@ -377,6 +443,14 @@ Internet-Draft                 Push-Assets                     June 2016
               RFC 7230, DOI 10.17487/RFC7230, June 2014,
               <http://www.rfc-editor.org/info/rfc7230>.
 
+
+
+
+Silvas                  Expires November 29, 2016               [Page 8]
+
+Internet-Draft                 Push-Assets                     June 2016
+
+
    [RFC7231]  Fielding, R., Ed. and J. Reschke, Ed., "Hypertext Transfer
               Protocol (HTTP/1.1): Semantics and Content", RFC 7231,
               DOI 10.17487/RFC7231, June 2014,
@@ -386,14 +460,6 @@ Internet-Draft                 Push-Assets                     June 2016
               Ed., "Hypertext Transfer Protocol (HTTP/1.1): Caching",
               RFC 7234, DOI 10.17487/RFC7234, June 2014,
               <http://www.rfc-editor.org/info/rfc7234>.
-
-
-
-
-Silvas                  Expires November 29, 2016               [Page 7]
-
-Internet-Draft                 Push-Assets                     June 2016
-
 
    [RFC7540]  Belshe, M., Peon, R., and M. Thomson, Ed., "Hypertext
               Transfer Protocol Version 2 (HTTP/2)", RFC 7540,
@@ -436,14 +502,4 @@ Author's Address
 
 
 
-
-
-
-
-
-
-
-
-
-
-Silvas                  Expires November 29, 2016               [Page 8]
+Silvas                  Expires November 29, 2016               [Page 9]

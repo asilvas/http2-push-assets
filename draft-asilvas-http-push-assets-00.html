@@ -498,7 +498,7 @@
 <h1 id="rfc.section.2"><a href="#rfc.section.2">2.</a> <a href="#understanding-the-problem" id="understanding-the-problem">Understanding The Problem</a></h1>
 <div id="rfc.figure.1"/>
 <div id="xml_problem"/>
-<p>Here we can begin to see the problem with vanilla HTTP/2 <a href="#RFC7540">[RFC7540]</a> Server Push using one of many custom cookie-based implementations to manage state.</p>
+<p>Here we can begin to see the problem with vanilla HTTP/2 <a href="#RFC7540">[RFC7540]</a> Server Push using one of many custom cookie-based implementations to manage client state.</p>
 <pre>
 
   +---------------+------------------+
@@ -509,6 +509,10 @@
                   | PUSH_PROMISE AB1 |
                   +------------------+
                   | Response A       |
+                  +------------------+
+                  | Response A1      |
+                  +------------------+
+                  | Response AB1     |
   +---------------+------------------+
   | Partial Cache | Request B        |
   +---------------+------------------+
@@ -517,6 +521,10 @@
                   | PUSH_PROMISE AB1 | &lt;== EVIL
                   +------------------+
                   | Response B       |
+                  +------------------+
+                  | Response B1      |
+                  +------------------+
+                  | Response AB1     | &lt;== EVIL
                   +------------------+
                   | RST_STREAM AB1   | &lt;== EVIL
                   +------------------+
@@ -537,12 +545,18 @@
                   | PUSH_PROMISE AB1 |
                   +------------------+
                   | Response A       |
+                  +------------------+
+                  | Response A1      |
+                  +------------------+
+                  | Response AB1     |
   +---------------+------------------+
   | Partial Cache | Request B        |
   +---------------+------------------+
                   | PUSH_PROMISE B1  |
                   +------------------+
                   | Response B       |
+                  +------------------+
+                  | Response B1      |
                   +------------------+
 
 </pre>

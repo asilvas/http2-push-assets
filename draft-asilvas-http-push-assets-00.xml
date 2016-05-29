@@ -84,7 +84,7 @@ and “OPTIONAL” are to be interpreted as described in BCP 14, RFC 2119
 
 <figure align="center" anchor="xml_problem">
 <preamble>Here we can begin to see the problem with vanilla HTTP/2 <xref target="RFC7540"/>
-  Server Push using one of many custom cookie-based implementations to manage state.</preamble>
+  Server Push using one of many custom cookie-based implementations to manage client state.</preamble>
 
 <artwork align="left"><![CDATA[
 
@@ -96,6 +96,10 @@ and “OPTIONAL” are to be interpreted as described in BCP 14, RFC 2119
                   | PUSH_PROMISE AB1 |
                   +------------------+
                   | Response A       |
+                  +------------------+
+                  | Response A1      |
+                  +------------------+
+                  | Response AB1     |
   +---------------+------------------+
   | Partial Cache | Request B        |
   +---------------+------------------+
@@ -104,6 +108,10 @@ and “OPTIONAL” are to be interpreted as described in BCP 14, RFC 2119
                   | PUSH_PROMISE AB1 | <== EVIL
                   +------------------+
                   | Response B       |
+                  +------------------+
+                  | Response B1      |
+                  +------------------+
+                  | Response AB1     | <== EVIL
                   +------------------+
                   | RST_STREAM AB1   | <== EVIL
                   +------------------+
@@ -127,12 +135,18 @@ and “OPTIONAL” are to be interpreted as described in BCP 14, RFC 2119
                   | PUSH_PROMISE AB1 |
                   +------------------+
                   | Response A       |
+                  +------------------+
+                  | Response A1      |
+                  +------------------+
+                  | Response AB1     |
   +---------------+------------------+
   | Partial Cache | Request B        |
   +---------------+------------------+
                   | PUSH_PROMISE B1  |
                   +------------------+
                   | Response B       |
+                  +------------------+
+                  | Response B1      |
                   +------------------+
 
 ]]></artwork>

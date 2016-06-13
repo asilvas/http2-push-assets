@@ -88,33 +88,31 @@ and “OPTIONAL” are to be interpreted as described in BCP 14, RFC 2119
 
 <artwork align="left"><![CDATA[
 
-  +---------------+------------------+
-  |  Empty Cache  | Request A        |
-  +---------------+------------------+
-                  | PUSH_PROMISE A1  |
-                  +------------------+
-                  | PUSH_PROMISE AB1 |
-                  +------------------+
-                  | Response A       |
-                  +------------------+
-                  | Response A1      |
-                  +------------------+
-                  | Response AB1     |
-  +---------------+------------------+
-  | Partial Cache | Request B        |
-  +---------------+------------------+
-                  | PUSH_PROMISE B1  |
-                  +------------------+
-                  | PUSH_PROMISE AB1 | <== EVIL
-                  +------------------+
-                  | Response B       |
-                  +------------------+
-                  | Response B1      |
-                  +------------------+
-                  | Response AB1     | <== EVIL
-                  +------------------+
-                  | RST_STREAM AB1   | <== EVIL
-                  +------------------+
++----------------------------+-------------------------+
+| Client                     | Server                  |
++----------------------------+-------------------------+
+| [         TCP+TLS+HTTP/2 Negotiation             ]   |
+|                            |                         |
+| GET /A.html       =======> |                         |
+|                   <======= | PUSH_PROMISE GET /A1.js |
+|                   <======= | PUSH_PROMISE GET /AB.js |
+|                   <======= | GET /A.html             |
+|                   <======= | GET /A1.js              |
+|                   <======= | GET /AB.js              |
+| [Page Complete]            |                         |
+|                            |                         |
+| [Navigate to "/B"]         |                         |
+|                            |                         |
+| GET /B.html       =======> |                         |
+|                   <======= | PUSH_PROMISE GET /B1.js |
+|                   <======= | PUSH_PROMISE GET /AB.js | (Server doesn't know Client has this)
+|                   <======= | GET /B.html             |
+|                   <======= | GET /B1.js              |
+| RST_STREAM /AB.js =======> | (Hault transfer)        |
+|                   <======= | GET /AB.js              | (Cancelled pre-flight, may be fully
+|                            |                         | transferred before RST_STREAM
+| [Page Complete]            |                         | received)
++----------------------------+-------------------------+
 
 ]]></artwork>
 
@@ -129,27 +127,27 @@ of change.</postamble>
 
 <artwork align="left"><![CDATA[
 
-  +---------------+------------------+
-  |  Empty Cache  | Request A        |
-  +---------------+------------------+
-                  | PUSH_PROMISE A1  |
-                  +------------------+
-                  | PUSH_PROMISE AB1 |
-                  +------------------+
-                  | Response A       |
-                  +------------------+
-                  | Response A1      |
-                  +------------------+
-                  | Response AB1     |
-  +---------------+------------------+
-  | Partial Cache | Request B        |
-  +---------------+------------------+
-                  | PUSH_PROMISE B1  |
-                  +------------------+
-                  | Response B       |
-                  +------------------+
-                  | Response B1      |
-                  +------------------+
++----------------------------+-------------------------+
+| Client                     | Server                  |
++----------------------------+-------------------------+
+| [         TCP+TLS+HTTP/2 Negotiation             ]   |
+|                            |                         |
+| GET /A.html       =======> |                         |
+|                   <======= | PUSH_PROMISE GET /A1.js |
+|                   <======= | PUSH_PROMISE GET /AB.js |
+|                   <======= | GET /A.html             |
+|                   <======= | GET /A1.js              |
+|                   <======= | GET /AB.js              |
+| [Page Complete]            |                         |
+|                            |                         |
+| [Navigate to "/B"]         |                         |
+|                            |                         |
+| GET /B.html       =======> |                         |
+|                   <======= | PUSH_PROMISE GET /B1.js |
+|                   <======= | GET /B.html             |
+|                   <======= | GET /B1.js              |
+| [Page Complete]            |                         |
++----------------------------+-------------------------+
 
 ]]></artwork>
 

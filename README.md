@@ -3,7 +3,7 @@
 **Internet-Draft** aiming to solve document dependency state by extending HTTP/2, bringing cutting-edge performance gains
 through the worst of network conditions.
 
-* [Latest Internet-Draft (In Progress)](https://github.com/asilvas/http2-push-assets/blob/master/draft-asilvas-http-push-assets-00.txt) ([pdf](https://github.com/asilvas/http2-push-assets/blob/master/draft-asilvas-http-push-assets-00.pdf) or [txt](https://github.com/asilvas/http2-push-assets/blob/master/draft-asilvas-http-push-assets-00.txt))
+* [Latest Internet-Draft (In Progress)](https://www.ietf.org/id/draft-asilvas-http-push-assets-00.txt) ([pdf](https://www.ietf.org/id/draft-asilvas-http-push-assets-00.pdf) or [txt](https://www.ietf.org/id/draft-asilvas-http-push-assets-00.txt))
 
 
 ## Clients
